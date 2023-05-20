@@ -14,8 +14,8 @@
     ],
     
         "functions": {
-          "/api/**/*.js": {
-            "timeout": 60
+          "/api/*.js": {
+            "maxDuration": 10000
           }
         }
       
