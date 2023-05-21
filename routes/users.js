@@ -1,6 +1,6 @@
 const express = require("express");
 const User = require("../models/User");
-const CryptoJS = require("crypto-js");
+const bcrypt = require("bcryptjs");
 const verify = require("./verifyToken");
 
 const router = express.Router();
@@ -9,10 +9,7 @@ const router = express.Router();
 router.put("/:id", verify, async (req, res) => {
   if (req.user.id === req.params.id || req.user.isAdmin) {
     if (req.body.password) {
-      req.body.password = CryptoJS.AES.encrypt(
-        req.body.password,
-        process.env.SECRET_KEY
-      ).toString();
+      req.body.password = await bcrypt.hash(req.body.password, 8);
     }
     const queryType = req.query.type;
     if (queryType == "liked") {

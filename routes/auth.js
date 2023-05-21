@@ -1,6 +1,6 @@
 const express = require("express");
 const User = require("../models/User");
-const CryptoJS = require("crypto-js");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const verify = require("./verifyToken");
 
@@ -8,13 +8,11 @@ const router = express.Router();
 
 // Register
 router.post("/register", async (req, res) => {
-  const newUser = await new User({
+  const hashPassword = await bcrypt.hash(req.body.password, 8);
+  const newUser = new User({
     username: req.body.username,
     email: req.body.email,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.SECRET_KEY
-    ).toString(),
+    password: hashPassword,
     isAdmin: req.body?.isAdmin,
   });
 
@@ -52,12 +50,8 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "wrong password or username" });
     }
-    const decrypted = CryptoJS.AES.decrypt(
-      user.password,
-      process.env.SECRET_KEY
-    );
-    const originalPassword = decrypted.toString(CryptoJS.enc.Utf8);
-    if (originalPassword !== req.body.password) {
+    const isPassValid = bcrypt.compareSync(req.body.password, user.password);
+    if (!isPassValid) {
       return res.status(404).json({ message: "wrong password or username" });
     }
     const accessToken = jwt.sign(
